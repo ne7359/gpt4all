@@ -21,7 +21,7 @@ from typing import Optional
 @click.option('--output-dmg', required=True, help='Path to the output signed DMG file.')
 @click.option('--sha1-hash', help='SHA-1 hash of the Developer ID Application certificate')
 @click.option('--signing-identity', default=None, help='Common name of the Developer ID Application certificate')
-@click.option('--verify', required=False, default=False, help='Perform verification of signed app bundle' )
+@click.option('--verify', is_flag=True, show_default=True, required=False, default=False, help='Perform verification of signed app bundle' )
 def sign_dmg(input_dmg: str, output_dmg: str, signing_identity: Optional[str] = None, sha1_hash: Optional[str] = None, verify: Optional[bool] = False) -> None:
     if not signing_identity and not sha1_hash:
         print("Error: Either --signing-identity or --sha1-hash must be provided.")
