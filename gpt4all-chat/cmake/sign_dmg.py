@@ -77,8 +77,8 @@ def sign_dmg(input_dmg: str, output_dmg: str, signing_identity: Optional[str] = 
                 '--strict',
                 app_bundle
             ], check=True, capture_output=True)
-            if not re.search(fr"{app_bundle}: valid", code_ver_proc.stdout):
-                raise RuntimeError(f"codesign validation failed: {code_ver_proc.stdout}")
+            if not re.search(fr"{app_bundle}: valid", code_ver_proc.stdout.decode()):
+                raise RuntimeError(f"codesign validation failed: {code_ver_proc.stdout.decode()}")
         except subprocess.CalledProcessError as e:
             print(f"Error during codesign validation: {e}")
             # Clean up temporary directories
@@ -94,8 +94,8 @@ def sign_dmg(input_dmg: str, output_dmg: str, signing_identity: Optional[str] = 
                 '-vv',
                 app_bundle
             ], check=True, capture_output=True)
-            if not re.search(fr"{app_bundle}: accepted", spctl_proc.stdout):
-                raise RuntimeError(f"spctl validation failed: {spctl_proc.stdout}")
+            if not re.search(fr"{app_bundle}: accepted", spctl_proc.stdout.decode()):
+                raise RuntimeError(f"spctl validation failed: {spctl_proc.stdout.decode()}")
         except subprocess.CalledProcessError as e:
             print(f"Error during spctl validation: {e}")
             # Clean up temporary directories
