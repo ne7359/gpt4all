@@ -67,6 +67,7 @@ jobs:
               -DBUILD_UNIVERSAL=ON \
               -DMACDEPLOYQT=~/Qt/6.5.1/macos/bin/macdeployqt \
               -DGPT4ALL_OFFLINE_INSTALLER=ON \
+              -DGPT4ALL_SIGN_INSTALL=ON \
               -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_PREFIX_PATH:PATH=~/Qt/6.5.1/macos/lib/cmake/Qt6 \
               -DCMAKE_MAKE_PROGRAM:FILEPATH=~/Qt/Tools/Ninja/ninja \
@@ -114,7 +115,7 @@ jobs:
           name: "Sign App Bundle"
           command: |
             python3 -m pip install click
-            python3 gpt4all-chat/cmake/sign_dmg.py --input-dmg build/upload/gpt4all-installer-darwin.dmg --output-dmg build/upload/gpt4all-installer-darwin-signed.dmg --signing-identity "$MAC_SIGNING_CERT_NAME" --verify
+            python3 gpt4all-chat/cmake/sign_dmg.py --input-dmg build/upload/gpt4all-installer-darwin.dmg --output-dmg build/upload/gpt4all-installer-darwin-signed.dmg --signing-identity "$MAC_SIGNING_CERT_NAME"
       - run:
           name: "Sign DMG"
           command: |

@@ -33,6 +33,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(GPT4ALL_LOCALHOST OFF "Build installer for localhost repo")
 option(GPT4ALL_OFFLINE_INSTALLER "Build an offline installer" OFF)
+option(GPT4ALL_SIGN_INSTALL "Sign installed binaries and installers (requires signing identities)" OFF)
 
 # Generate a header file with the version number
 configure_file(
@@ -348,6 +349,19 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
     find_program(MACDEPLOYQT macdeployqt HINTS ${_qt_bin_dir})
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/deploy-qt-mac.cmake.in"
                    "${CMAKE_BINARY_DIR}/cmake/deploy-qt-mac.cmake" @ONLY)
+    if(NOT MAC_SIGNING_IDENTITY)
+        if(NOT $ENV{MAC_SIGNING_CERT_NAME} AND GPT4ALL_SIGN_INSTALL)
+            message(FATAL_ERROR [=[
+    Signing requested but no identity configured.
+    Please set the MAC_SIGNING_CERT_NAME env variable or provide the MAC_SIGNING_IDENTITY argument on the command line
+            ]=])
+        else()
+            set(MAC_SIGNING_IDENTITY $ENV{MAC_SIGNING_CERT_NAME})
+        endif()
+    endif()
+    if(GPT4ALL_SIGN_INSTALL)
+        set(CPACK_IFW_PACKAGE_SIGNING_IDENTITY ${MAC_SIGNING_IDENTITY})
+    endif()
     set(CPACK_PRE_BUILD_SCRIPTS ${CMAKE_BINARY_DIR}/cmake/deploy-qt-mac.cmake)
     set(CPACK_IFW_ROOT "~/Qt/Tools/QtInstallerFramework/4.6")
     set(CPACK_IFW_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/resources/gpt4all.icns")
