@@ -282,6 +282,10 @@ target_link_libraries(chat
 
 # -- install --
 
+function(install_sign_osx tgt)
+    install(CODE "execute_process(COMMAND codesign --options runtime --timestamp -s \"${MAC_SIGNING_IDENTITY}\" $<TARGET_FILE:${tgt}>)")
+endfunction()
+
 set(COMPONENT_NAME_MAIN ${PROJECT_NAME})
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -324,6 +328,13 @@ install(
     RUNTIME DESTINATION lib COMPONENT ${COMPONENT_NAME_MAIN}  # .dll
 )
 
+if(APPLE)
+    install_sign_osx(chat)
+    install_sign_osx(llmodel)
+    foreach(tgt ${MODEL_IMPL_TARGETS})
+        install_sign_osx(${tgt})
+    endforeach()
+endif()
 if (LLMODEL_CUDA)
     set_property(TARGET llamamodel-mainline-cuda llamamodel-mainline-cuda-avxonly
                  APPEND PROPERTY INSTALL_RPATH "$ORIGIN")
