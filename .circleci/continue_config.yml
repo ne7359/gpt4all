@@ -57,6 +57,15 @@ jobs:
           paths:
             - ~/Qt
       - run:
+          name: Setup Keychain
+          command: |
+            echo $MAC_SIGNING_CERT | base64 --decode > cert.p12
+            security create-keychain -p "$MAC_KEYCHAIN_KEY" sign.keychain
+            security default-keychain -s sign.keychain
+            security unlock-keychain -p "$MAC_KEYCHAIN_KEY" sign.keychain
+            security import cert.p12 -k sign.keychain -P "$MAC_SIGNING_CERT_PWD" -T /usr/bin/codesign
+            security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MAC_KEYCHAIN_KEY" sign.keychain
+      - run:
           name: Build
           command: |
             mkdir build

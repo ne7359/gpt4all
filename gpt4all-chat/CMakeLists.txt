@@ -328,13 +328,14 @@ install(
     RUNTIME DESTINATION lib COMPONENT ${COMPONENT_NAME_MAIN}  # .dll
 )
 
-if(APPLE)
+if(APPLE AND GPT4ALL_SIGN_INSTALL)
     install_sign_osx(chat)
     install_sign_osx(llmodel)
     foreach(tgt ${MODEL_IMPL_TARGETS})
         install_sign_osx(${tgt})
     endforeach()
 endif()
+
 if (LLMODEL_CUDA)
     set_property(TARGET llamamodel-mainline-cuda llamamodel-mainline-cuda-avxonly
                  APPEND PROPERTY INSTALL_RPATH "$ORIGIN")
