@@ -219,7 +219,12 @@ qt_add_qml_module(chat
 set_target_properties(chat PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
-
+macro(REPORT_MISSING_SIGNING_CONTEXT)
+    message(FATAL_ERROR [=[
+        Signing requested but no identity configured.
+        Please set the MAC_SIGNING_CERT_NAME env variable or provide the MAC_SIGNING_IDENTITY argument on the command line
+        ]=])
+endmacro()
 if (APPLE)
     set_target_properties(chat PROPERTIES
         MACOSX_BUNDLE TRUE
@@ -230,6 +235,29 @@ if (APPLE)
         OUTPUT_NAME gpt4all
     )
     add_dependencies(chat ggml-metal)
+
+    if(NOT MAC_SIGNING_IDENTITY)
+        if(NOT $ENV{MAC_SIGNING_CERT_NAME} AND GPT4ALL_SIGN_INSTALL)
+            REPORT_MISSING_SIGNING_CONTEXT()
+        endif()
+        set(MAC_SIGNING_IDENTITY $ENV{MAC_SIGNING_CERT_NAME})
+    endif()
+    if(NOT MAC_SIGNING_TID)
+        if(NOT $ENV{MAC_NOTARIZATION_TID} AND GPT4ALL_SIGN_INSTALL)
+            REPORT_MISSING_SIGNING_CONTEXT()
+        endif()
+        set(MAC_SIGNING_TID $ENV{MAC_NOTARIZATION_TID})
+    endif()
+
+    # Setup MacOS signing for individual binaries
+    set_target_properties(chat PROPERTIES
+        XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Manual"
+        XCODE_ATTRIBUTE_DEVELOPMENT_TEAM ${MAC_SIGNING_TID}
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ${MAC_SIGNING_IDENTITY}
+        XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED True
+        XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--timestamp=http://timestamp.apple.com/ts01  --options=runtime,library"
+        # XCODE_ATTRIBUTE_CODE_SIGN_INJECT_BASE_ENTITLEMENTS "NO"
+    )
 endif()
 
 target_compile_definitions(chat
@@ -349,16 +377,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
     find_program(MACDEPLOYQT macdeployqt HINTS ${_qt_bin_dir})
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/deploy-qt-mac.cmake.in"
                    "${CMAKE_BINARY_DIR}/cmake/deploy-qt-mac.cmake" @ONLY)
-    if(NOT MAC_SIGNING_IDENTITY)
-        if(NOT $ENV{MAC_SIGNING_CERT_NAME} AND GPT4ALL_SIGN_INSTALL)
-            message(FATAL_ERROR [=[
-    Signing requested but no identity configured.
-    Please set the MAC_SIGNING_CERT_NAME env variable or provide the MAC_SIGNING_IDENTITY argument on the command line
-            ]=])
-        else()
-            set(MAC_SIGNING_IDENTITY $ENV{MAC_SIGNING_CERT_NAME})
-        endif()
-    endif()
     if(GPT4ALL_SIGN_INSTALL)
         set(CPACK_IFW_PACKAGE_SIGNING_IDENTITY ${MAC_SIGNING_IDENTITY})
     endif()
