@@ -248,7 +248,18 @@ if (APPLE)
         endif()
         set(MAC_SIGNING_TID $ENV{MAC_NOTARIZATION_TID})
     endif()
-
+    
+    set_target_properties(llmodel PROPERTIES
+        FRAMEWORK TRUE
+        FRAMEWORK_VERSION A
+        VERSION ${PROJECT_VERSION}
+        MACOSX_FRAMEWORK_IDENTIFIER io.gpt4all.llmodel
+        XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Manual"
+        XCODE_ATTRIBUTE_DEVELOPMENT_TEAM ${MAC_SIGNING_TID}
+        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ${MAC_SIGNING_IDENTITY}
+        XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED True
+        XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--timestamp=http://timestamp.apple.com/ts01  --options=runtime,library"
+    )
     # Setup MacOS signing for individual binaries
     set_target_properties(chat PROPERTIES
         XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Manual"
@@ -298,6 +309,7 @@ install(
     TARGETS llmodel
     LIBRARY DESTINATION lib COMPONENT ${COMPONENT_NAME_MAIN}  # .so/.dylib
     RUNTIME DESTINATION bin COMPONENT ${COMPONENT_NAME_MAIN}  # .dll
+    FRAMEWORK DESTINATION ${CMAKE_INSTALL_PREFIX}/Frameworks
 )
 
 # We should probably iterate through the list of the cmake for backend, but these need to be installed

@@ -72,17 +72,16 @@ jobs:
             cd build
             export PATH=$PATH:$HOME/Qt/Tools/QtInstallerFramework/4.7/bin
             ~/Qt/Tools/CMake/CMake.app/Contents/bin/cmake \
-              -DCMAKE_GENERATOR:STRING=Ninja \
+              -DCMAKE_GENERATOR:STRING=Xcode \
               -DBUILD_UNIVERSAL=ON \
               -DMACDEPLOYQT=~/Qt/6.5.1/macos/bin/macdeployqt \
               -DGPT4ALL_OFFLINE_INSTALLER=ON \
               -DGPT4ALL_SIGN_INSTALL=ON \
               -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_PREFIX_PATH:PATH=~/Qt/6.5.1/macos/lib/cmake/Qt6 \
-              -DCMAKE_MAKE_PROGRAM:FILEPATH=~/Qt/Tools/Ninja/ninja \
               -S ../gpt4all-chat \
               -B .
-            ~/Qt/Tools/CMake/CMake.app/Contents/bin/cmake --build . --target all
+            ~/Qt/Tools/CMake/CMake.app/Contents/bin/cmake --build . --target ALL_BUILD
             ~/Qt/Tools/CMake/CMake.app/Contents/bin/cmake --build . --target install
             ~/Qt/Tools/CMake/CMake.app/Contents/bin/cmake --build . --target package
             mkdir upload
