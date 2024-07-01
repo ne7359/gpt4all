@@ -435,6 +435,8 @@ jobs:
             copy gpt4all-installer-win64.exe upload
       - store_artifacts:
           path: build/upload
+      - store_artifacts:
+          path: build/_CPack_Packages/win64/IFW/gpt4all-installer-win64/repository
             # add workspace so signing jobs can connect & obtain dmg
       - persist_to_workspace:
           root: build
