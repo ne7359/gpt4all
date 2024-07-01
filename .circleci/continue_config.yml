@@ -383,6 +383,21 @@ jobs:
             Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/12.4.1/network_installers/cuda_12.4.1_windows_network.exe -OutFile cuda_12.4.1_windows_network.exe
             .\cuda_12.4.1_windows_network.exe -s cudart_12.4 nvcc_12.4 cublas_12.4 cublas_dev_12.4
       - run:
+          name: "Install Dotnet 8"
+          command: |
+            mkdir dotnet
+            cd dotnet
+            $dotnet_url="https://download.visualstudio.microsoft.com/download/pr/5af098e1-e433-4fda-84af-3f54fd27c108/6bd1c6e48e64e64871957289023ca590/dotnet-sdk-8.0.302-win-x64.zip"
+            Invoke-WebRequest -Uri $dotnet_url -Outfile dotnet-sdk-8.0.302-win-x64.zip
+            Expand-Archive -LiteralPath .\dotnet-sdk-8.0.302-win-x64.zip
+            $Env:DOTNET_ROOT="$($(Get-Location).Path)\dotnet-sdk-8.0.302-win-x64"
+            $Env:PATH="$Env:DOTNET_ROOT;$Env:PATH"
+      - run:
+          name: "Setup Azure SignTool"
+          command: |
+            $Env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE=$true
+            dotnet tool install --global AzureSignTool
+      - run:
           name: Build
           command: |
             $Env:PATH = "${Env:PATH};C:\Program Files (x86)\Windows Kits\10\bin\x64"
