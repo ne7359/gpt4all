@@ -346,6 +346,107 @@ jobs:
             AzureSignTool.exe sign -du "https://gpt4all.io/index.html" -kvu https://gpt4all.vault.azure.net -kvi "$Env:AZSignGUID" -kvs "$Env:AZSignPWD" -kvc "$Env:AZSignCertName" -kvt "$Env:AZSignTID" -tr http://timestamp.digicert.com -v "$($(Get-Location).Path)\build\upload\gpt4all-installer-win64.exe"
       - store_artifacts:
           path: build/upload
+  build-online-chat-installer-windows:
+    machine:
+      image: 'windows-server-2019-vs2019:2022.08.1'
+      resource_class: windows.large
+      shell: powershell.exe -ExecutionPolicy Bypass
+    steps:
+      - checkout
+      - run:
+          name: Update Submodules
+          command: |
+            git submodule sync
+            git submodule update --init --recursive
+      - restore_cache:  # this is the new step to restore cache
+          keys:
+            - windows-qt-cache-v2
+      - run:
+          name: Installing Qt
+          command: |
+            if (-not (Test-Path C:\Qt)) {
+              Invoke-WebRequest -Uri https://gpt4all.io/ci/qt-unified-windows-x64-4.6.0-online.exe -OutFile qt-unified-windows-x64-4.6.0-online.exe
+              & .\qt-unified-windows-x64-4.6.0-online.exe --no-force-installations --no-default-installations --no-size-checking --default-answer --accept-licenses --confirm-command --accept-obligations --email ${Env:QT_EMAIL} --password ${Env:QT_PASSWORD} install qt.tools.cmake qt.tools.ifw.47 qt.tools.ninja qt.qt6.651.win64_msvc2019_64 qt.qt6.651.qt5compat qt.qt6.651.debug_info qt.qt6.651.addons.qtpdf qt.qt6.651.addons.qthttpserver
+            }
+      - save_cache:  # this is the new step to save cache
+          key: windows-qt-cache-v2
+          paths:
+            - C:\Qt
+      - run:
+          name: Install VulkanSDK
+          command: |
+            Invoke-WebRequest -Uri https://sdk.lunarg.com/sdk/download/1.3.261.1/windows/VulkanSDK-1.3.261.1-Installer.exe -OutFile VulkanSDK-1.3.261.1-Installer.exe
+            .\VulkanSDK-1.3.261.1-Installer.exe --accept-licenses --default-answer --confirm-command install
+      - run:
+          name: Install CUDA Toolkit
+          command: |
+            Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/12.4.1/network_installers/cuda_12.4.1_windows_network.exe -OutFile cuda_12.4.1_windows_network.exe
+            .\cuda_12.4.1_windows_network.exe -s cudart_12.4 nvcc_12.4 cublas_12.4 cublas_dev_12.4
+      - run:
+          name: Build
+          command: |
+            $Env:PATH = "${Env:PATH};C:\Program Files (x86)\Windows Kits\10\bin\x64"
+            $Env:PATH = "${Env:PATH};C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x64"
+            $Env:PATH = "${Env:PATH};C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\bin\HostX64\x64"
+            $Env:PATH = "${Env:PATH};C:\VulkanSDK\1.3.261.1\bin"
+            $Env:PATH = "${Env:PATH};C:\Qt\Tools\QtInstallerFramework\4.7\bin"
+            $Env:LIB = "${Env:LIB};C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22000.0\ucrt\x64"
+            $Env:LIB = "${Env:LIB};C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22000.0\um\x64"
+            $Env:LIB = "${Env:LIB};C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\lib\x64"
+            $Env:LIB = "${Env:LIB};C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\lib\x64"
+            $Env:INCLUDE = "${Env:INCLUDE};C:\Program Files (x86)\Windows Kits\10\include\10.0.22000.0\ucrt"
+            $Env:INCLUDE = "${Env:INCLUDE};C:\Program Files (x86)\Windows Kits\10\include\10.0.22000.0\um"
+            $Env:INCLUDE = "${Env:INCLUDE};C:\Program Files (x86)\Windows Kits\10\include\10.0.22000.0\shared"
+            $Env:INCLUDE = "${Env:INCLUDE};C:\Program Files (x86)\Windows Kits\10\include\10.0.22000.0\winrt"
+            $Env:INCLUDE = "${Env:INCLUDE};C:\Program Files (x86)\Windows Kits\10\include\10.0.22000.0\cppwinrt"
+            $Env:INCLUDE = "${Env:INCLUDE};C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\VS\include"
+            $Env:INCLUDE = "${Env:INCLUDE};C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include"
+            $Env:INCLUDE = "${Env:INCLUDE};C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include"
+            mkdir build
+            cd build
+            & "C:\Qt\Tools\CMake_64\bin\cmake.exe" `
+              "-DCMAKE_GENERATOR:STRING=Ninja" `
+              "-DCMAKE_BUILD_TYPE=Release" `
+              "-DCMAKE_PREFIX_PATH:PATH=C:\Qt\6.5.1\msvc2019_64" `
+              "-DCMAKE_MAKE_PROGRAM:FILEPATH=C:\Qt\Tools\Ninja\ninja.exe" `
+              "-DKOMPUTE_OPT_DISABLE_VULKAN_VERSION_CHECK=ON" `
+              "-DGPT4ALL_OFFLINE_INSTALLER=OFF" `
+              "-S ..\gpt4all-chat" `
+              "-B ."
+            & "C:\Qt\Tools\Ninja\ninja.exe"
+            & "C:\Qt\Tools\Ninja\ninja.exe" install
+            & "C:\Qt\Tools\Ninja\ninja.exe" package
+            mkdir upload
+            copy gpt4all-installer-win64.exe upload
+      - store_artifacts:
+          path: build/upload
+            # add workspace so signing jobs can connect & obtain dmg
+      - persist_to_workspace:
+          root: build
+          # specify path to only include components we want to persist
+          # accross builds
+          paths:
+            - upload
+  sign-online-chat-installer-windows:
+    machine:
+      image: 'windows-server-2019-vs2019:2022.08.1'
+      resource_class: windows.large
+      shell: powershell.exe -ExecutionPolicy Bypass
+    steps:
+      - checkout
+      - attach_workspace:
+          at: build
+      - run:
+          name: "Setup Azure SignTool"
+          command: |
+            $Env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE=$true
+            dotnet tool install --global AzureSignTool --version 2.0.17
+      - run:
+          name: "Sign Windows Installer With AST"
+          command: |
+            AzureSignTool.exe sign -du "https://gpt4all.io/index.html" -kvu https://gpt4all.vault.azure.net -kvi "$Env:AZSignGUID" -kvs "$Env:AZSignPWD" -kvc "$Env:AZSignCertName" -kvt "$Env:AZSignTID" -tr http://timestamp.digicert.com -v "$($(Get-Location).Path)/build/upload/gpt4all-installer-win64.exe"
+      - store_artifacts:
+          path: build/upload
 
   build-gpt4all-chat-linux:
     machine:
