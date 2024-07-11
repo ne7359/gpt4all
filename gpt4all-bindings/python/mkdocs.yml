@@ -26,7 +26,8 @@ nav:
 
 
 theme:
-  name: material
+  name: 'material'
+  custom_dir: 'docs/overrides'
   palette:
     primary: white
   logo: assets/nomic.png

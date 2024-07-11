@@ -1,0 +1,15 @@
+{% extends "theme/material/templates/base.html" %}
+
+{% block extrahead %}
+<!-- PushFeedback styles -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pushfeedback/dist/pushfeedback/pushfeedback.css">
+
+<!-- PushFeedback script as ES6 module -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/pushfeedback/dist/pushfeedback/pushfeedback.esm.js"></script>
+{% endblock %}
+
+{% block content %}
+{{ super() }}
+
+<feedback-button project="k0qy0bw47i" button-position="bottom-right" modal-position="bottom-right" button-style="light">Feedback</feedback-button>
+{% endblock %}
