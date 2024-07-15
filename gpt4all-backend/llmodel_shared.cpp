@@ -14,7 +14,8 @@
 #include <vector>
 
 // TODO(cebtenzzre): replace this with llama_kv_cache_seq_shift for llamamodel (GPT-J needs this as-is)
-void LLModel::recalculateContext(PromptContext &promptCtx, std::function<bool(bool)> recalculate) {
+void LLModel::recalculateContext(PromptContext &promptCtx, std::function<bool(bool)> recalculate)
+{
     int n_keep = shouldAddBOS();
     const int32_t n_discard = (promptCtx.n_ctx - n_keep) * promptCtx.contextErase;
 
@@ -43,7 +44,8 @@ stop_generating:
     recalculate(false);
 }
 
-static bool parsePromptTemplate(const std::string &tmpl, std::vector<std::smatch> &placeholders, std::string &err) {
+static bool parsePromptTemplate(const std::string &tmpl, std::vector<std::smatch> &placeholders, std::string &err)
+{
     static const std::regex placeholderRegex(R"(%[1-2](?![0-9]))");
 
     auto it = std::sregex_iterator(tmpl.begin(), tmpl.end(), placeholderRegex);
@@ -133,14 +135,16 @@ void LLModel::prompt(const std::string &prompt,
     promptCtx.n_past = old_n_past; // restore n_past so decodePrompt can increment it
 
     // decode the user prompt
-    decodePrompt(promptCallback, responseCallback, recalculateCallback, promptCtx, embd_inp);
+    if (!decodePrompt(promptCallback, responseCallback, recalculateCallback, promptCtx, embd_inp))
+        return; // error
 
     // decode the assistant's reply, either generated or spoofed
     if (fakeReply == nullptr) {
         generateResponse(responseCallback, recalculateCallback, promptCtx);
     } else {
         embd_inp = tokenize(promptCtx, *fakeReply, false);
-        decodePrompt(promptCallback, responseCallback, recalculateCallback, promptCtx, embd_inp);
+        if (!decodePrompt(promptCallback, responseCallback, recalculateCallback, promptCtx, embd_inp))
+            return; // error
     }
 
     // decode the rest of the prompt template
@@ -158,7 +162,8 @@ void LLModel::prompt(const std::string &prompt,
     }
 }
 
-void LLModel::decodePrompt(std::function<bool(int32_t)> promptCallback,
+// returns false on error
+bool LLModel::decodePrompt(std::function<bool(int32_t)> promptCallback,
                            std::function<bool(int32_t, const std::string&)> responseCallback,
                            std::function<bool(bool)> recalculateCallback,
                            PromptContext &promptCtx,
@@ -170,7 +175,7 @@ void LLModel::decodePrompt(std::function<bool(int32_t)> promptCallback,
         responseCallback(-1, "ERROR: The prompt size exceeds the context window size and cannot be processed.");
         std::cerr << implementation().modelType() << " ERROR: The prompt is " << embd_inp.size() <<
             " tokens and the context window is " << promptCtx.n_ctx << "!\n";
-        return;
+        return false;
     }
 
     promptCtx.n_predict = std::min(promptCtx.n_predict, promptCtx.n_ctx - (int) embd_inp.size());
@@ -191,7 +196,7 @@ void LLModel::decodePrompt(std::function<bool(int32_t)> promptCallback,
 
         if (!evalTokens(promptCtx, batch)) {
             std::cerr << implementation().modelType() << " ERROR: Failed to process prompt\n";
-            return;
+            return false;
         }
 
         size_t tokens = batch_end - i;
@@ -201,10 +206,12 @@ void LLModel::decodePrompt(std::function<bool(int32_t)> promptCallback,
             promptCtx.tokens.push_back(batch.at(t));
             promptCtx.n_past += 1;
             if (!promptCallback(batch.at(t)))
-                return;
+                return false;
         }
         i = batch_end;
     }
+
+    return true;
 }
 
 void LLModel::generateResponse(std::function<bool(int32_t, const std::string&)> responseCallback,

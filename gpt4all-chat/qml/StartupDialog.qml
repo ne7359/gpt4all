@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects
 import download
 import network
 import llm
@@ -31,13 +32,20 @@ MyDialog {
                 id: img
                 anchors.top: parent.top
                 anchors.left: parent.left
-                width: 60
-                height: 60
-                source: "qrc:/gpt4all/icons/logo.svg"
+                sourceSize.width: 60
+                sourceSize.height: 60
+                mipmap: true
+                visible: false
+                source: "qrc:/gpt4all/icons/globe.svg"
+            }
+            ColorOverlay {
+                anchors.fill: img
+                source: img
+                color: theme.titleTextColor
             }
             Text {
                 anchors.left: img.right
-                anchors.leftMargin: 30
+                anchors.leftMargin: 10
                 anchors.verticalCenter: img.verticalCenter
                 text: qsTr("Welcome!")
                 color: theme.textColor
@@ -56,10 +64,7 @@ MyDialog {
                 id: welcome
                 width: 1024 - 40
                 textFormat: TextEdit.MarkdownText
-                text: qsTr("### Release notes\n")
-                    + Download.releaseInfo.notes
-                    + qsTr("### Contributors\n")
-                    + Download.releaseInfo.contributors
+                text: qsTr("### Release notes\n%1### Contributors\n%2").arg(Download.releaseInfo.notes).arg(Download.releaseInfo.contributors)
                 focus: false
                 readOnly: true
                 Accessible.role: Accessible.Paragraph

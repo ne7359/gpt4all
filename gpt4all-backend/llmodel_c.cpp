@@ -20,7 +20,8 @@ struct LLModelWrapper {
     ~LLModelWrapper() { delete llModel; }
 };
 
-llmodel_model llmodel_model_create(const char *model_path) {
+llmodel_model llmodel_model_create(const char *model_path)
+{
     const char *error;
     auto fres = llmodel_model_create2(model_path, "auto", &error);
     if (!fres) {
@@ -29,7 +30,8 @@ llmodel_model llmodel_model_create(const char *model_path) {
     return fres;
 }
 
-static void llmodel_set_error(const char **errptr, const char *message) {
+static void llmodel_set_error(const char **errptr, const char *message)
+{
     thread_local static std::string last_error_message;
     if (errptr) {
         last_error_message = message;
@@ -37,7 +39,8 @@ static void llmodel_set_error(const char **errptr, const char *message) {
     }
 }
 
-llmodel_model llmodel_model_create2(const char *model_path, const char *backend, const char **error) {
+llmodel_model llmodel_model_create2(const char *model_path, const char *backend, const char **error)
+{
     LLModel *llModel;
     try {
         llModel = LLModel::Implementation::construct(model_path, backend);
@@ -51,7 +54,8 @@ llmodel_model llmodel_model_create2(const char *model_path, const char *backend,
     return wrapper;
 }
 
-void llmodel_model_destroy(llmodel_model model) {
+void llmodel_model_destroy(llmodel_model model)
+{
     delete static_cast<LLModelWrapper *>(model);
 }
 
@@ -281,12 +285,6 @@ bool llmodel_gpu_init_gpu_device_by_int(llmodel_model model, int device)
 {
     auto *wrapper = static_cast<LLModelWrapper *>(model);
     return wrapper->llModel->initializeGPUDevice(device);
-}
-
-bool llmodel_has_gpu_device(llmodel_model model)
-{
-    const auto *wrapper = static_cast<LLModelWrapper *>(model);
-    return wrapper->llModel->hasGPUDevice();
 }
 
 const char *llmodel_model_backend_name(llmodel_model model)

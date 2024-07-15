@@ -13,12 +13,13 @@
 #include <QIODevice>
 #include <QSettings>
 #include <QString>
+#include <QStringList>
 #include <Qt>
 
 #include <algorithm>
 
 #define CHAT_FORMAT_MAGIC 0xF5D553CC
-#define CHAT_FORMAT_VERSION 7
+#define CHAT_FORMAT_VERSION 8
 
 class MyChatListModel: public ChatListModel { };
 Q_GLOBAL_STATIC(MyChatListModel, chatListModelInstance)
@@ -28,7 +29,17 @@ ChatListModel *ChatListModel::globalInstance()
 }
 
 ChatListModel::ChatListModel()
-    : QAbstractListModel(nullptr) {}
+    : QAbstractListModel(nullptr) {
+
+        QCoreApplication::instance()->installEventFilter(this);
+}
+
+bool ChatListModel::eventFilter(QObject *obj, QEvent *ev)
+{
+    if (obj == QCoreApplication::instance() && ev->type() == QEvent::LanguageChange)
+        emit dataChanged(index(0, 0), index(m_chats.size() - 1, 0));
+    return false;
+}
 
 void ChatListModel::loadChats()
 {
@@ -64,7 +75,6 @@ ChatSaver::ChatSaver()
 
 void ChatListModel::saveChats()
 {
-    const QString savePath = MySettings::globalInstance()->modelPath();
     QVector<Chat*> toSave;
     for (Chat *chat : m_chats) {
         if (chat == m_serverChat)

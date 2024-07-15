@@ -15,9 +15,11 @@
 #include <QObject>
 #include <QQmlApplicationEngine>
 #include <QQmlEngine>
+#include <QSettings>
 #include <QString>
-#include <Qt>
+#include <QTranslator>
 #include <QUrl>
+#include <Qt>
 
 int main(int argc, char *argv[])
 {
@@ -25,11 +27,23 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain("gpt4all.io");
     QCoreApplication::setApplicationName("GPT4All");
     QCoreApplication::setApplicationVersion(APP_VERSION);
+    QSettings::setDefaultFormat(QSettings::IniFormat);
 
     Logger::globalInstance();
 
     QGuiApplication app(argc, argv);
+
+    // Set the local and language translation before the qml engine has even been started. This will
+    // use the default system locale unless the user has explicitly set it to use a different one.
+    MySettings::globalInstance()->setLanguageAndLocale();
+
     QQmlApplicationEngine engine;
+
+    // Add a connection here from MySettings::languageAndLocaleChanged signal to a lambda slot where I can call
+    // engine.uiLanguage property
+    QObject::connect(MySettings::globalInstance(), &MySettings::languageAndLocaleChanged, [&engine]() {
+        engine.setUiLanguage(MySettings::globalInstance()->languageAndLocale());
+    });
 
     QString llmodelSearchPaths = QCoreApplication::applicationDirPath();
     const QString libDir = QCoreApplication::applicationDirPath() + "/../lib/";

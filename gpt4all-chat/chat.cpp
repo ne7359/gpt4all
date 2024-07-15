@@ -4,7 +4,6 @@
 #include "mysettings.h"
 #include "network.h"
 #include "server.h"
-#include "database.h"
 
 #include <QDataStream>
 #include <QDateTime>
@@ -16,6 +15,7 @@
 #include <QTextStream>
 #include <Qt>
 #include <QtGlobal>
+#include <QtLogging>
 
 #include <utility>
 
@@ -58,14 +58,15 @@ void Chat::connectLLM()
     connect(m_llmodel, &ChatLLM::modelLoadingPercentageChanged, this, &Chat::handleModelLoadingPercentageChanged, Qt::QueuedConnection);
     connect(m_llmodel, &ChatLLM::responseChanged, this, &Chat::handleResponseChanged, Qt::QueuedConnection);
     connect(m_llmodel, &ChatLLM::promptProcessing, this, &Chat::promptProcessing, Qt::QueuedConnection);
+    connect(m_llmodel, &ChatLLM::generatingQuestions, this, &Chat::generatingQuestions, Qt::QueuedConnection);
     connect(m_llmodel, &ChatLLM::responseStopped, this, &Chat::responseStopped, Qt::QueuedConnection);
     connect(m_llmodel, &ChatLLM::modelLoadingError, this, &Chat::handleModelLoadingError, Qt::QueuedConnection);
     connect(m_llmodel, &ChatLLM::modelLoadingWarning, this, &Chat::modelLoadingWarning, Qt::QueuedConnection);
     connect(m_llmodel, &ChatLLM::recalcChanged, this, &Chat::handleRecalculating, Qt::QueuedConnection);
     connect(m_llmodel, &ChatLLM::generatedNameChanged, this, &Chat::generatedNameChanged, Qt::QueuedConnection);
+    connect(m_llmodel, &ChatLLM::generatedQuestionFinished, this, &Chat::generatedQuestionFinished, Qt::QueuedConnection);
     connect(m_llmodel, &ChatLLM::reportSpeed, this, &Chat::handleTokenSpeedChanged, Qt::QueuedConnection);
-    connect(m_llmodel, &ChatLLM::reportDevice, this, &Chat::handleDeviceChanged, Qt::QueuedConnection);
-    connect(m_llmodel, &ChatLLM::reportFallbackReason, this, &Chat::handleFallbackReasonChanged, Qt::QueuedConnection);
+    connect(m_llmodel, &ChatLLM::loadedModelInfoChanged, this, &Chat::loadedModelInfoChanged, Qt::QueuedConnection);
     connect(m_llmodel, &ChatLLM::databaseResultsChanged, this, &Chat::handleDatabaseResultsChanged, Qt::QueuedConnection);
     connect(m_llmodel, &ChatLLM::modelInfoChanged, this, &Chat::handleModelInfoChanged, Qt::QueuedConnection);
     connect(m_llmodel, &ChatLLM::trySwitchContextOfLoadedModelCompleted, this, &Chat::handleTrySwitchContextOfLoadedModelCompleted, Qt::QueuedConnection);
@@ -91,10 +92,10 @@ void Chat::reset()
     emit resetContextRequested();
     m_id = Network::globalInstance()->generateUniqueId();
     emit idChanged(m_id);
-    // NOTE: We deliberately do no reset the name or creation date to indictate that this was originally
+    // NOTE: We deliberately do no reset the name or creation date to indicate that this was originally
     // an older chat that was reset for another purpose. Resetting this data will lead to the chat
     // name label changing back to 'New Chat' and showing up in the chat model list as a 'New Chat'
-    // further down in the list. This might surprise the user. In the future, we me might get rid of
+    // further down in the list. This might surprise the user. In the future, we might get rid of
     // the "reset context" button in the UI. Right now, by changing the model in the combobox dropdown
     // we effectively do a reset context. We *have* to do this right now when switching between different
     // types of models. The only way to get rid of that would be a very long recalculate where we rebuild
@@ -114,6 +115,8 @@ void Chat::resetResponseState()
     if (m_responseInProgress && m_responseState == Chat::LocalDocsRetrieval)
         return;
 
+    m_generatedQuestions = QList<QString>();
+    emit generatedQuestionsChanged();
     m_tokenSpeed = QString();
     emit tokenSpeedChanged();
     m_responseInProgress = true;
@@ -131,7 +134,7 @@ void Chat::prompt(const QString &prompt)
 void Chat::regenerateResponse()
 {
     const int index = m_chatModel->count() - 1;
-    m_chatModel->updateReferences(index, QString(), QList<QString>());
+    m_chatModel->updateSources(index, QList<ResultInfo>());
     emit regenerateResponseRequested();
 }
 
@@ -187,6 +190,12 @@ void Chat::handleModelLoadingPercentageChanged(float loadingPercentage)
 void Chat::promptProcessing()
 {
     m_responseState = !databaseResults().isEmpty() ? Chat::LocalDocsProcessing : Chat::PromptProcessing;
+     emit responseStateChanged();
+}
+
+void Chat::generatingQuestions()
+{
+    m_responseState = Chat::GeneratingQuestions;
     emit responseStateChanged();
 }
 
@@ -194,43 +203,6 @@ void Chat::responseStopped(qint64 promptResponseMs)
 {
     m_tokenSpeed = QString();
     emit tokenSpeedChanged();
-
-    const QString chatResponse = response();
-    QList<QString> references;
-    QList<QString> referencesContext;
-    int validReferenceNumber = 1;
-    for (const ResultInfo &info : databaseResults()) {
-        if (info.file.isEmpty())
-            continue;
-        if (validReferenceNumber == 1)
-            references.append((!chatResponse.endsWith("\n") ? "\n" : QString()) + QStringLiteral("\n---"));
-        QString reference;
-        {
-            QTextStream stream(&reference);
-            stream << (validReferenceNumber++) << ". ";
-            if (!info.title.isEmpty())
-                stream << "\"" << info.title << "\". ";
-            if (!info.author.isEmpty())
-                stream << "By " << info.author << ". ";
-            if (!info.date.isEmpty())
-                stream << "Date: " << info.date << ". ";
-            stream << "In " << info.file << ". ";
-            if (info.page != -1)
-                stream << "Page " << info.page << ". ";
-            if (info.from != -1) {
-                stream << "Lines " << info.from;
-                if (info.to != -1)
-                    stream << "-" << info.to;
-                stream << ". ";
-            }
-            stream << "[Context](context://" << validReferenceNumber - 1 << ")";
-        }
-        references.append(reference);
-        referencesContext.append(info.text);
-    }
-
-    const int index = m_chatModel->count() - 1;
-    m_chatModel->updateReferences(index, references.join("\n"), referencesContext);
     emit responseChanged();
 
     m_responseInProgress = false;
@@ -267,8 +239,8 @@ void Chat::newPromptResponsePair(const QString &prompt)
 {
     resetResponseState();
     m_chatModel->updateCurrentResponse(m_chatModel->count() - 1, false);
-    m_chatModel->appendPrompt(tr("Prompt: "), prompt);
-    m_chatModel->appendResponse(tr("Response: "), prompt);
+    m_chatModel->appendPrompt("Prompt: ", prompt);
+    m_chatModel->appendResponse("Response: ", prompt);
     emit resetResponseRequested();
 }
 
@@ -276,8 +248,8 @@ void Chat::serverNewPromptResponsePair(const QString &prompt)
 {
     resetResponseState();
     m_chatModel->updateCurrentResponse(m_chatModel->count() - 1, false);
-    m_chatModel->appendPrompt(tr("Prompt: "), prompt);
-    m_chatModel->appendResponse(tr("Response: "), prompt);
+    m_chatModel->appendPrompt("Prompt: ", prompt);
+    m_chatModel->appendResponse("Response: ", prompt);
 }
 
 bool Chat::isRecalc() const
@@ -337,9 +309,15 @@ void Chat::generatedNameChanged(const QString &name)
     // Only use the first three words maximum and remove newlines and extra spaces
     m_generatedName = name.simplified();
     QStringList words = m_generatedName.split(' ', Qt::SkipEmptyParts);
-    int wordCount = qMin(3, words.size());
+    int wordCount = qMin(7, words.size());
     m_name = words.mid(0, wordCount).join(' ');
     emit nameChanged();
+}
+
+void Chat::generatedQuestionFinished(const QString &question)
+{
+    m_generatedQuestions << question;
+    emit generatedQuestionsChanged();
 }
 
 void Chat::handleRecalculating()
@@ -364,21 +342,26 @@ void Chat::handleTokenSpeedChanged(const QString &tokenSpeed)
     emit tokenSpeedChanged();
 }
 
-void Chat::handleDeviceChanged(const QString &device)
+QString Chat::deviceBackend() const
 {
-    m_device = device;
-    emit deviceChanged();
+    return m_llmodel->deviceBackend();
 }
 
-void Chat::handleFallbackReasonChanged(const QString &fallbackReason)
+QString Chat::device() const
 {
-    m_fallbackReason = fallbackReason;
-    emit fallbackReasonChanged();
+    return m_llmodel->device();
+}
+
+QString Chat::fallbackReason() const
+{
+    return m_llmodel->fallbackReason();
 }
 
 void Chat::handleDatabaseResultsChanged(const QList<ResultInfo> &results)
 {
     m_databaseResults = results;
+    const int index = m_chatModel->count() - 1;
+    m_chatModel->updateSources(index, m_databaseResults);
 }
 
 void Chat::handleModelInfoChanged(const ModelInfo &modelInfo)
@@ -390,7 +373,8 @@ void Chat::handleModelInfoChanged(const ModelInfo &modelInfo)
     emit modelInfoChanged();
 }
 
-void Chat::handleTrySwitchContextOfLoadedModelCompleted(int value) {
+void Chat::handleTrySwitchContextOfLoadedModelCompleted(int value)
+{
     m_trySwitchContextInProgress = value;
     emit trySwitchContextInProgressChanged();
 }

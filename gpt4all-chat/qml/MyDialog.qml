@@ -7,6 +7,7 @@ import QtQuick.Layouts
 
 Dialog {
     id: myDialog
+    parent: Overlay.overlay
     property alias closeButtonVisible: myCloseButton.visible
     background: Rectangle {
         width: parent.width
@@ -33,8 +34,10 @@ Dialog {
         y: 0 - myDialog.padding + 15
         z: 300
         visible: myDialog.closePolicy != Popup.NoAutoClose
-        width: 30
-        height: 30
+        width: 24
+        height: 24
+        imageWidth: 24
+        imageHeight: 24
         padding: 0
         source: "qrc:/gpt4all/icons/close.svg"
         fillMode: Image.PreserveAspectFit

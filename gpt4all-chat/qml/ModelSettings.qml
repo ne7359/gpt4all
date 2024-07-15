@@ -11,36 +11,39 @@ MySettingsTab {
     onRestoreDefaultsClicked: {
         MySettings.restoreModelDefaults(root.currentModelInfo);
     }
-    title: qsTr("Model/Character Settings")
+    title: qsTr("Model")
     contentItem: GridLayout {
         id: root
         columns: 3
         rowSpacing: 10
         columnSpacing: 10
+        enabled: ModelList.selectableModels.count !== 0
 
         property var currentModelName: comboBox.currentText
         property var currentModelId: comboBox.currentValue
         property var currentModelInfo: ModelList.modelInfo(root.currentModelId)
 
-        MySettingsLabel {
-            id: label
-            Layout.row: 0
+        Label {
+            Layout.row: 1
             Layout.column: 0
-            text: qsTr("Model/Character")
+            Layout.bottomMargin: 10
+            color: theme.settingsTitleTextColor
+            font.pixelSize: theme.fontSizeBannerSmall
+            font.bold: true
+            text: qsTr("Model Settings")
         }
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.row: 1
+            Layout.row: 2
             Layout.column: 0
             Layout.columnSpan: 2
-            height: label.height + 20
             spacing: 10
 
             MyComboBox {
                 id: comboBox
                 Layout.fillWidth: true
-                model: ModelList.installedModels
+                model: ModelList.selectableModels
                 valueRole: "id"
                 textRole: "name"
                 currentIndex: {
@@ -59,7 +62,7 @@ MySettingsTab {
                     elide: Text.ElideRight
                 }
                 delegate: ItemDelegate {
-                    width: comboBox.width
+                    width: comboBox.width -20
                     contentItem: Text {
                         text: name
                         color: theme.textColor
@@ -68,7 +71,8 @@ MySettingsTab {
                         verticalAlignment: Text.AlignVCenter
                     }
                     background: Rectangle {
-                        color: highlighted ? theme.lightContrast : theme.darkContrast
+                        radius: 10
+                        color: highlighted ? theme.menuHighlightColor : theme.menuBackgroundColor
                     }
                     highlighted: comboBox.highlightedIndex === index
                 }
@@ -95,20 +99,12 @@ MySettingsTab {
         }
 
         RowLayout {
-            Layout.row: 2
+            Layout.row: 3
             Layout.column: 0
             Layout.topMargin: 15
             spacing: 10
             MySettingsLabel {
-                id: uniqueNameLabel
-                text: qsTr("Unique Name")
-            }
-            MySettingsLabel {
-                id: uniqueNameLabelHelp
-                visible: false
-                text: qsTr("Must contain a non-empty unique name that does not match any existing model/character.")
-                color: theme.textErrorColor
-                wrapMode: TextArea.Wrap
+                text: qsTr("Name")
             }
         }
 
@@ -117,7 +113,7 @@ MySettingsTab {
             text: root.currentModelName
             font.pixelSize: theme.fontSizeLarge
             enabled: root.currentModelInfo.isClone || root.currentModelInfo.description === ""
-            Layout.row: 3
+            Layout.row: 4
             Layout.column: 0
             Layout.columnSpan: 2
             Layout.fillWidth: true
@@ -137,14 +133,12 @@ MySettingsTab {
                 if (text !== "" && ModelList.isUniqueName(text)) {
                     MySettings.setModelName(root.currentModelInfo, text);
                 }
-                uniqueNameLabelHelp.visible = root.currentModelInfo.name !== "" &&
-                    (text === "" || (text !== root.currentModelInfo.name && !ModelList.isUniqueName(text)));
             }
         }
 
         MySettingsLabel {
             text: qsTr("Model File")
-            Layout.row: 4
+            Layout.row: 5
             Layout.column: 0
             Layout.topMargin: 15
         }
@@ -153,7 +147,7 @@ MySettingsTab {
             text: root.currentModelInfo.filename
             font.pixelSize: theme.fontSizeLarge
             enabled: false
-            Layout.row: 5
+            Layout.row: 6
             Layout.column: 0
             Layout.columnSpan: 2
             Layout.fillWidth: true
@@ -162,7 +156,8 @@ MySettingsTab {
         MySettingsLabel {
             visible: !root.currentModelInfo.isOnline
             text: qsTr("System Prompt")
-            Layout.row: 6
+            helpText: qsTr("Prefixed at the beginning of every conversation. Must contain the appropriate framing tokens.")
+            Layout.row: 7
             Layout.column: 0
             Layout.topMargin: 15
         }
@@ -170,7 +165,7 @@ MySettingsTab {
         Rectangle {
             id: systemPrompt
             visible: !root.currentModelInfo.isOnline
-            Layout.row: 7
+            Layout.row: 8
             Layout.column: 0
             Layout.columnSpan: 2
             Layout.fillWidth: true
@@ -196,14 +191,11 @@ MySettingsTab {
                     MySettings.setModelSystemPrompt(root.currentModelInfo, text)
                 }
                 Accessible.role: Accessible.EditableText
-                ToolTip.text: qsTr("The systemPrompt allows instructions to the model at the beginning of a chat.\nNOTE: A longer, detailed system prompt can lead to higher quality answers, but can also slow down generation.")
-                ToolTip.visible: hovered
-                ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
             }
         }
 
         RowLayout {
-            Layout.row: 8
+            Layout.row: 9
             Layout.column: 0
             Layout.columnSpan: 2
             Layout.topMargin: 15
@@ -211,6 +203,7 @@ MySettingsTab {
             MySettingsLabel {
                 id: promptTemplateLabel
                 text: qsTr("Prompt Template")
+                helpText: qsTr("The template that wraps every prompt.")
             }
             MySettingsLabel {
                 id: promptTemplateLabelHelp
@@ -223,7 +216,7 @@ MySettingsTab {
 
         Rectangle {
             id: promptTemplate
-            Layout.row: 9
+            Layout.row: 10
             Layout.column: 0
             Layout.columnSpan: 2
             Layout.fillWidth: true
@@ -254,128 +247,143 @@ MySettingsTab {
                 Accessible.role: Accessible.EditableText
                 Accessible.name: promptTemplateLabel.text
                 Accessible.description: promptTemplateLabelHelp.text
-                ToolTip.text: qsTr("The prompt template partially determines how models will respond to prompts.\nNOTE: A longer, detailed template can lead to higher quality answers, but can also slow down generation.")
-                ToolTip.visible: hovered
-                ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-            }
-        }
-
-        Rectangle {
-            id: optionalImageRect
-            visible: false // FIXME: for later
-            Layout.row: 2
-            Layout.column: 1
-            Layout.rowSpan: 5
-            Layout.alignment: Qt.AlignHCenter
-            Layout.fillHeight: true
-            Layout.maximumWidth: height
-            Layout.topMargin: 35
-            Layout.bottomMargin: 35
-            Layout.leftMargin: 35
-            width: 3000
-            radius: 10
-            color: "transparent"
-            Item {
-                anchors.centerIn: parent
-                height: childrenRect.height
-                Image {
-                    id: img
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: 100
-                    height: 100
-                    source: "qrc:/gpt4all/icons/image.svg"
-                }
-                Text {
-                    text: qsTr("Add\noptional image")
-                    font.pixelSize: theme.fontSizeLarge
-                    anchors.top: img.bottom
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    wrapMode: TextArea.Wrap
-                    horizontalAlignment: Qt.AlignHCenter
-                    color: theme.mutedTextColor
-                }
             }
         }
 
         MySettingsLabel {
-            text: qsTr("Generation Settings")
-            Layout.row: 10
+            id: chatNamePromptLabel
+            text: qsTr("Chat Name Prompt")
+            helpText: qsTr("Prompt used to automatically generate chat names.")
+            Layout.row: 11
+            Layout.column: 0
+            Layout.topMargin: 15
+        }
+
+        Rectangle {
+            id: chatNamePrompt
+            Layout.row: 12
             Layout.column: 0
             Layout.columnSpan: 2
+            Layout.fillWidth: true
+            Layout.minimumHeight: Math.max(100, chatNamePromptTextArea.contentHeight + 20)
+            color: "transparent"
+            clip: true
+            MyTextArea {
+                id: chatNamePromptTextArea
+                anchors.fill: parent
+                text: root.currentModelInfo.chatNamePrompt
+                Accessible.role: Accessible.EditableText
+                Accessible.name: chatNamePromptLabel.text
+                Accessible.description: chatNamePromptLabel.text
+            }
+        }
+
+        MySettingsLabel {
+            id: suggestedFollowUpPromptLabel
+            text: qsTr("Suggested FollowUp Prompt")
+            helpText: qsTr("Prompt used to generate suggested follow-up questions.")
+            Layout.row: 13
+            Layout.column: 0
             Layout.topMargin: 15
-            Layout.alignment: Qt.AlignHCenter
-            Layout.minimumWidth: promptTemplate.width
-            horizontalAlignment: Qt.AlignHCenter
-            font.pixelSize: theme.fontSizeLarge
-            font.bold: true
+        }
+
+        Rectangle {
+            id: suggestedFollowUpPrompt
+            Layout.row: 14
+            Layout.column: 0
+            Layout.columnSpan: 2
+            Layout.fillWidth: true
+            Layout.minimumHeight: Math.max(100, suggestedFollowUpPromptTextArea.contentHeight + 20)
+            color: "transparent"
+            clip: true
+            MyTextArea {
+                id: suggestedFollowUpPromptTextArea
+                anchors.fill: parent
+                text: root.currentModelInfo.suggestedFollowUpPrompt
+                Accessible.role: Accessible.EditableText
+                Accessible.name: suggestedFollowUpPromptLabel.text
+                Accessible.description: suggestedFollowUpPromptLabel.text
+            }
         }
 
         GridLayout {
-            Layout.row: 11
+            Layout.row: 15
             Layout.column: 0
             Layout.columnSpan: 2
             Layout.topMargin: 15
             Layout.fillWidth: true
-            Layout.minimumWidth: promptTemplate.width
             columns: 4
-            rowSpacing: 10
+            rowSpacing: 30
             columnSpacing: 10
 
             MySettingsLabel {
                 id: contextLengthLabel
                 visible: !root.currentModelInfo.isOnline
                 text: qsTr("Context Length")
+                helpText: qsTr("Number of input and output tokens the model sees.")
                 Layout.row: 0
                 Layout.column: 0
+                Layout.maximumWidth: 300 * theme.fontScale
             }
-            MyTextField {
-                id: contextLengthField
-                visible: !root.currentModelInfo.isOnline
-                text: root.currentModelInfo.contextLength
-                font.pixelSize: theme.fontSizeLarge
-                color: theme.textColor
-                ToolTip.text: qsTr("Maximum combined prompt/response tokens before information is lost.\nUsing more context than the model was trained on will yield poor results.\nNOTE: Does not take effect until you reload the model.")
-                ToolTip.visible: hovered
+            Item {
                 Layout.row: 0
                 Layout.column: 1
-                Connections {
-                    target: MySettings
-                    function onContextLengthChanged() {
-                        contextLengthField.text = root.currentModelInfo.contextLength;
-                    }
-                }
-                Connections {
-                    target: root
-                    function onCurrentModelInfoChanged() {
-                        contextLengthField.text = root.currentModelInfo.contextLength;
-                    }
-                }
-                onEditingFinished: {
-                    var val = parseInt(text)
-                    if (isNaN(val)) {
-                        text = root.currentModelInfo.contextLength
-                    } else {
-                        if (val < 8) {
-                            val = 8
-                            contextLengthField.text = val
-                        } else if (val > root.currentModelInfo.maxContextLength) {
-                            val = root.currentModelInfo.maxContextLength
-                            contextLengthField.text = val
+                Layout.fillWidth: true
+                Layout.maximumWidth: 200
+                Layout.margins: 0
+                height: contextLengthField.height
+
+                MyTextField {
+                    id: contextLengthField
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: !root.currentModelInfo.isOnline
+                    text: root.currentModelInfo.contextLength
+                    font.pixelSize: theme.fontSizeLarge
+                    color: theme.textColor
+                    ToolTip.text: qsTr("Maximum combined prompt/response tokens before information is lost.\nUsing more context than the model was trained on will yield poor results.\nNOTE: Does not take effect until you reload the model.")
+                    ToolTip.visible: hovered
+                    Connections {
+                        target: MySettings
+                        function onContextLengthChanged() {
+                            contextLengthField.text = root.currentModelInfo.contextLength;
                         }
-                        MySettings.setModelContextLength(root.currentModelInfo, val)
-                        focus = false
                     }
+                    Connections {
+                        target: root
+                        function onCurrentModelInfoChanged() {
+                            contextLengthField.text = root.currentModelInfo.contextLength;
+                        }
+                    }
+                    onEditingFinished: {
+                        var val = parseInt(text)
+                        if (isNaN(val)) {
+                            text = root.currentModelInfo.contextLength
+                        } else {
+                            if (val < 8) {
+                                val = 8
+                                contextLengthField.text = val
+                            } else if (val > root.currentModelInfo.maxContextLength) {
+                                val = root.currentModelInfo.maxContextLength
+                                contextLengthField.text = val
+                            }
+                            MySettings.setModelContextLength(root.currentModelInfo, val)
+                            focus = false
+                        }
+                    }
+                    Accessible.role: Accessible.EditableText
+                    Accessible.name: contextLengthLabel.text
+                    Accessible.description: ToolTip.text
                 }
-                Accessible.role: Accessible.EditableText
-                Accessible.name: contextLengthLabel.text
-                Accessible.description: ToolTip.text
             }
 
             MySettingsLabel {
                 id: tempLabel
                 text: qsTr("Temperature")
+                helpText: qsTr("Randomness of model output. Higher -> more variation.")
                 Layout.row: 1
                 Layout.column: 2
+                Layout.maximumWidth: 300 * theme.fontScale
             }
 
             MyTextField {
@@ -417,16 +425,18 @@ MySettingsTab {
             }
             MySettingsLabel {
                 id: topPLabel
-                text: qsTr("Top P")
+                text: qsTr("Top-P")
+                helpText: qsTr("Nucleus Sampling factor. Lower -> more predicatable.")
                 Layout.row: 2
                 Layout.column: 0
+                Layout.maximumWidth: 300 * theme.fontScale
             }
             MyTextField {
                 id: topPField
                 text: root.currentModelInfo.topP
                 color: theme.textColor
                 font.pixelSize: theme.fontSizeLarge
-                ToolTip.text: qsTr("Only the most likely tokens up to a total probability of top_p can be chosen.\nNOTE: Prevents choosing highly unlikely tokens, aka Nucleus Sampling")
+                ToolTip.text: qsTr("Only the most likely tokens up to a total probability of top_p can be chosen.\nNOTE: Prevents choosing highly unlikely tokens.")
                 ToolTip.visible: hovered
                 Layout.row: 2
                 Layout.column: 1
@@ -460,9 +470,11 @@ MySettingsTab {
             }
             MySettingsLabel {
                 id: minPLabel
-                text: qsTr("Min P")
+                text: qsTr("Min-P")
+                helpText: qsTr("Minimum token probability. Higher -> more predictable.")
                 Layout.row: 3
                 Layout.column: 0
+                Layout.maximumWidth: 300 * theme.fontScale
             }
             MyTextField {
                 id: minPField
@@ -505,9 +517,11 @@ MySettingsTab {
             MySettingsLabel {
                 id: topKLabel
                 visible: !root.currentModelInfo.isOnline
-                text: qsTr("Top K")
+                text: qsTr("Top-K")
+                helpText: qsTr("Size of selection pool for tokens.")
                 Layout.row: 2
                 Layout.column: 2
+                Layout.maximumWidth: 300 * theme.fontScale
             }
             MyTextField {
                 id: topKField
@@ -515,7 +529,7 @@ MySettingsTab {
                 text: root.currentModelInfo.topK
                 color: theme.textColor
                 font.pixelSize: theme.fontSizeLarge
-                ToolTip.text: qsTr("Only the top K most likely tokens will be chosen from")
+                ToolTip.text: qsTr("Only the top K most likely tokens will be chosen from.")
                 ToolTip.visible: hovered
                 Layout.row: 2
                 Layout.column: 3
@@ -551,8 +565,10 @@ MySettingsTab {
                 id: maxLengthLabel
                 visible: !root.currentModelInfo.isOnline
                 text: qsTr("Max Length")
+                helpText: qsTr("Maximum response length, in tokens.")
                 Layout.row: 0
                 Layout.column: 2
+                Layout.maximumWidth: 300 * theme.fontScale
             }
             MyTextField {
                 id: maxLengthField
@@ -560,8 +576,6 @@ MySettingsTab {
                 text: root.currentModelInfo.maxLength
                 color: theme.textColor
                 font.pixelSize: theme.fontSizeLarge
-                ToolTip.text: qsTr("Maximum length of response in tokens")
-                ToolTip.visible: hovered
                 Layout.row: 0
                 Layout.column: 3
                 validator: IntValidator {
@@ -597,8 +611,10 @@ MySettingsTab {
                 id: batchSizeLabel
                 visible: !root.currentModelInfo.isOnline
                 text: qsTr("Prompt Batch Size")
+                helpText: qsTr("The batch size used for prompt processing.")
                 Layout.row: 1
                 Layout.column: 0
+                Layout.maximumWidth: 300 * theme.fontScale
             }
             MyTextField {
                 id: batchSizeField
@@ -606,7 +622,7 @@ MySettingsTab {
                 text: root.currentModelInfo.promptBatchSize
                 color: theme.textColor
                 font.pixelSize: theme.fontSizeLarge
-                ToolTip.text: qsTr("Amount of prompt tokens to process at once.\nNOTE: Higher values can speed up reading prompts but will use more RAM")
+                ToolTip.text: qsTr("Amount of prompt tokens to process at once.\nNOTE: Higher values can speed up reading prompts but will use more RAM.")
                 ToolTip.visible: hovered
                 Layout.row: 1
                 Layout.column: 1
@@ -642,8 +658,10 @@ MySettingsTab {
                 id: repeatPenaltyLabel
                 visible: !root.currentModelInfo.isOnline
                 text: qsTr("Repeat Penalty")
+                helpText: qsTr("Repetition penalty factor. Set to 1 to disable.")
                 Layout.row: 4
                 Layout.column: 2
+                Layout.maximumWidth: 300 * theme.fontScale
             }
             MyTextField {
                 id: repeatPenaltyField
@@ -651,8 +669,6 @@ MySettingsTab {
                 text: root.currentModelInfo.repeatPenalty
                 color: theme.textColor
                 font.pixelSize: theme.fontSizeLarge
-                ToolTip.text: qsTr("Amount to penalize repetitiveness of the output")
-                ToolTip.visible: hovered
                 Layout.row: 4
                 Layout.column: 3
                 validator: DoubleValidator {
@@ -687,8 +703,10 @@ MySettingsTab {
                 id: repeatPenaltyTokensLabel
                 visible: !root.currentModelInfo.isOnline
                 text: qsTr("Repeat Penalty Tokens")
+                helpText: qsTr("Number of previous tokens used for penalty.")
                 Layout.row: 3
                 Layout.column: 2
+                Layout.maximumWidth: 300 * theme.fontScale
             }
             MyTextField {
                 id: repeatPenaltyTokenField
@@ -696,8 +714,6 @@ MySettingsTab {
                 text: root.currentModelInfo.repeatPenaltyTokens
                 color: theme.textColor
                 font.pixelSize: theme.fontSizeLarge
-                ToolTip.text: qsTr("How far back in output to apply repeat penalty")
-                ToolTip.visible: hovered
                 Layout.row: 3
                 Layout.column: 3
                 validator: IntValidator {
@@ -733,8 +749,10 @@ MySettingsTab {
                 id: gpuLayersLabel
                 visible: !root.currentModelInfo.isOnline
                 text: qsTr("GPU Layers")
+                helpText: qsTr("Number of model layers to load into VRAM.")
                 Layout.row: 4
                 Layout.column: 0
+                Layout.maximumWidth: 300 * theme.fontScale
             }
             MyTextField {
                 id: gpuLayersField
@@ -742,7 +760,7 @@ MySettingsTab {
                 text: root.currentModelInfo.gpuLayers
                 font.pixelSize: theme.fontSizeLarge
                 color: theme.textColor
-                ToolTip.text: qsTr("How many GPU layers to load into VRAM. Decrease this if GPT4All runs out of VRAM while loading this model.\nLower values increase CPU load and RAM usage, and make inference slower.\nNOTE: Does not take effect until you reload the model.")
+                ToolTip.text: qsTr("How many model layers to load into VRAM. Decrease this if GPT4All runs out of VRAM while loading this model.\nLower values increase CPU load and RAM usage, and make inference slower.\nNOTE: Does not take effect until you reload the model.")
                 ToolTip.visible: hovered
                 Layout.row: 4
                 Layout.column: 1
@@ -785,14 +803,13 @@ MySettingsTab {
         }
 
         Rectangle {
-            Layout.row: 12
+            Layout.row: 16
             Layout.column: 0
             Layout.columnSpan: 2
             Layout.topMargin: 15
             Layout.fillWidth: true
-            Layout.minimumWidth: promptTemplate.width
-            height: 3
-            color: theme.accentColor
+            height: 1
+            color: theme.settingsDivider
         }
     }
 }
