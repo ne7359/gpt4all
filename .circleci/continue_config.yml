@@ -1136,7 +1136,7 @@ jobs:
             cd gpt4all-backend
             mkdir runtimes/win-x64_msvc
             cd runtimes/win-x64_msvc
-            cmake -G "Visual Studio 17 2022" -DKOMPUTE_OPT_DISABLE_VULKAN_VERSION_CHECK=ON -A X64 ../..
+            cmake -G "Visual Studio 16 2019" -DKOMPUTE_OPT_DISABLE_VULKAN_VERSION_CHECK=ON -A X64 ../..
             cmake --build . --parallel --config Release
             cp bin/Release/*.dll .
       - persist_to_workspace:
