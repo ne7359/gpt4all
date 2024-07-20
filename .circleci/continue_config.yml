@@ -1107,7 +1107,8 @@ jobs:
           name: Install CUDA Toolkit
           command: |
             Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/11.8.0/network_installers/cuda_11.8.0_windows_network.exe -OutFile cuda_11.8.0_windows_network.exe
-            .\cuda_11.8.0_windows_network.exe -s cudart_11.8 nvcc_11.8 cublas_11.8 cublas_dev_11.8
+            .\cuda_11.8.0_windows_network.exe cudart_11.8 nvcc_11.8 cublas_11.8 cublas_dev_11.8
+            ls "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8"
       - run:
           name: Install dependencies
           command: |
@@ -1133,10 +1134,13 @@ jobs:
             $Env:INCLUDE += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include"
             $Env:INCLUDE += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include"
             $Env:VULKAN_SDK = "C:\VulkanSDK\1.3.261.1"
+            $Env:CUDA_PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8"
+            $Env:CUDA_V11_8 = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8"
+        
             cd gpt4all-backend
             mkdir runtimes/win-x64_msvc
             cd runtimes/win-x64_msvc
-            cmake -G Ninja -DKOMPUTE_OPT_DISABLE_VULKAN_VERSION_CHECK=ON -A X64 ../..
+            cmake -G "Visual Studio 16 2019" -DKOMPUTE_OPT_DISABLE_VULKAN_VERSION_CHECK=ON -A X64 ../..
             cmake --build . --parallel --config Release
             cp bin/Release/*.dll .
       - persist_to_workspace:
