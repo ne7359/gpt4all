@@ -1108,7 +1108,6 @@ jobs:
           command: |
             Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/11.8.0/network_installers/cuda_11.8.0_windows_network.exe -OutFile cuda_11.8.0_windows_network.exe
             .\cuda_11.8.0_windows_network.exe cudart_11.8 nvcc_11.8 cublas_11.8 cublas_dev_11.8
-            tree "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8"
       - run:
           name: Install dependencies
           command: |
