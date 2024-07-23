@@ -1112,6 +1112,7 @@ jobs:
           name: Install dependencies
           command: |
             choco install -y cmake --installargs 'ADD_CMAKE_TO_PATH=System'  
+            Get-Command nvcc
       - run:
           name: Build Libraries
           command: |
