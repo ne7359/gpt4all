@@ -1112,15 +1112,12 @@ jobs:
           name: Install dependencies
           command: |
             choco install -y cmake --installargs 'ADD_CMAKE_TO_PATH=System'  
-            # Get-ChildItem "C:\Program Files" -Recurse | Select-String "CUDA" -List | Select Path
       - run:
           name: Build Libraries
           command: |
-            $Env:Path += ";C:\Program Files\CMake\bin"
-            $Env:Path += ";C:\VulkanSDK\1.3.261.1\bin"
-            $Env:PATH = "${Env:PATH};C:\Program Files (x86)\Windows Kits\10\bin\x64"
-            $Env:PATH = "${Env:PATH};C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x64"
-            $Env:PATH = "${Env:PATH};C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\bin\HostX64\x64"
+            $Env:PATH += ";C:\Program Files (x86)\Windows Kits\10\bin\x64"
+            $Env:PATH += ";C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x64"
+            $Env:PATH += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\bin\HostX64\x64"
             $Env:LIB  = "C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22000.0\ucrt\x64"
             $Env:LIB += ";C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22000.0\um\x64"
             $Env:LIB += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\lib\x64"
@@ -1133,17 +1130,12 @@ jobs:
             $Env:INCLUDE += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\VS\include"
             $Env:INCLUDE += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include"
             $Env:INCLUDE += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include"
+
+            $Env:PATH += ";C:\VulkanSDK\1.3.261.1\bin"
             $Env:VULKAN_SDK = "C:\VulkanSDK\1.3.261.1"
-            $Env:CUDA_TOOLKIT_ROOT_DIR = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\bin"
-            $Env:CUDA_PATH = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\bin"
-            $Env:CUDA_V11_8 = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\bin"
-            $Env:PATH= "${Env:PATH};C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\bin"
-        
             cd gpt4all-backend
-            mkdir runtimes/win-x64_msvc
-            cd runtimes/win-x64_msvc
-            cmake -G "Visual Studio 16 2019" -DKOMPUTE_OPT_DISABLE_VULKAN_VERSION_CHECK=ON -A X64 ../..
-            cmake --build . --parallel --config Release
+            cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DKOMPUTE_OPT_DISABLE_VULKAN_VERSION_CHECK=ON
+            cmake --build build --parallel
             cp bin/Release/*.dll .
       - persist_to_workspace:
           root: gpt4all-backend
