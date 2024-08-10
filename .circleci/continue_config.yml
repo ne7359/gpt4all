@@ -1113,10 +1113,12 @@ jobs:
           command: |
             $Folder = 'C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8'
             if(Test-Path -Path $Folder) {
-              Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/11.8.0/network_installers/cuda_11.8.0_windows_network.exe -OutFile cuda_11.8.0_windows_network.exe
-              .\cuda_11.8.0_windows_network.exe -s cudart_11.8 nvcc_11.8 cublas_11.8 cublas_dev_11.8
-            } else {
               echo 'Cuda restored from cache'
+            } else {
+              echo 'Cache not found, reinstalling cuda'
+              $NvidiaCudaWebUrl = 'https://developer.download.nvidia.com/compute/cuda/11.8.0/network_installers/cuda_11.8.0_windows_network.exe'
+              Invoke-WebRequest -Uri $NvidiaCudaWebUrl -OutFile cuda_11.8.0_windows_network.exe
+              .\cuda_11.8.0_windows_network.exe -s cudart_11.8 nvcc_11.8 cublas_11.8 cublas_dev_11.8
             }
 
       - save_cache:
