@@ -1104,7 +1104,7 @@ jobs:
             Invoke-WebRequest -Uri https://sdk.lunarg.com/sdk/download/1.3.261.1/windows/VulkanSDK-1.3.261.1-Installer.exe -OutFile VulkanSDK-1.3.261.1-Installer.exe
             .\VulkanSDK-1.3.261.1-Installer.exe --accept-licenses --default-answer --confirm-command install
 
-        restore_cache:
+      - restore_cache:
           keys:
             - cudawin118
             
@@ -1113,6 +1113,7 @@ jobs:
           command: |
             Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/11.8.0/network_installers/cuda_11.8.0_windows_network.exe -OutFile cuda_11.8.0_windows_network.exe
             .\cuda_11.8.0_windows_network.exe -s cudart_11.8 nvcc_11.8 cublas_11.8 cublas_dev_11.8
+
       - save_cache:
           key: cudawin118 
           paths:
