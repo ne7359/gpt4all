@@ -1269,7 +1269,6 @@ jobs:
       - run: corepack enable
       - run:           
           command: |
-            npm install -g yarn
             cd gpt4all-bindings/typescript
             yarn install
       - run:
