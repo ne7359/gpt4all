@@ -1112,10 +1112,13 @@ jobs:
           name: Install CUDA Toolkit
           command: |
             $Folder = 'C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8'
+            ls $Folder
             if(Test-Path -Path $Folder) {
               Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/11.8.0/network_installers/cuda_11.8.0_windows_network.exe -OutFile cuda_11.8.0_windows_network.exe
               .\cuda_11.8.0_windows_network.exe -s cudart_11.8 nvcc_11.8 cublas_11.8 cublas_dev_11.8
-            } 
+            } else {
+              echo 'Cuda restored from cache'
+            }
 
       - save_cache:
           key: cudawin118 
@@ -1238,17 +1241,18 @@ jobs:
       - run: 
           name: "Persisting all necessary things to workspace"
           command: |
-            mkdir -p gpt4all-backend/prebuilds/darwin-x64
+            # prebuild arm architecture. circleci only supports arm now
+            # but, intel macs should still work, since we build universal gpt4all mac runtimes
+            mkdir -p gpt4all-backend/prebuilds/darwin-arm64
             mkdir -p gpt4all-backend/runtimes/darwin
 
             cp /tmp/gpt4all-backend/runtimes/osx-x64/*-*.* gpt4all-backend/runtimes/darwin
-            ls gpt4all-bindings/typescript/
             ls gpt4all-bindings/typescript/prebuilds/
-            cp gpt4all-bindings/typescript/prebuilds/darwin-x64/*.node gpt4all-backend/prebuilds/darwin-x64
+            cp gpt4all-bindings/typescript/prebuilds/darwin-arm64/*.node gpt4all-backend/prebuilds/darwin-arm64
       - persist_to_workspace:
           root: gpt4all-backend
           paths:
-            - prebuilds/darwin-x64/*.node
+            - prebuilds/darwin-*/*.node
             - runtimes/darwin/*-*.*
 
   build-nodejs-windows: 
@@ -1314,23 +1318,36 @@ jobs:
           command: |
             cd gpt4all-bindings/typescript
             # excluding llmodel. nodejs bindings dont need llmodel.dll
+            # PREPARE WINDOWS BINARIES
             mkdir -p runtimes/win32-x64/native
             mkdir -p prebuilds/win32-x64/
             cp /tmp/gpt4all-backend/runtimes/win-x64_msvc/*-*.dll runtimes/win32-x64/native/ 
             cp /tmp/gpt4all-backend/prebuilds/win32-x64/*.node prebuilds/win32-x64/    
 
+            # PREPARE LINUX BINARIES
+            # x64 binaries
             mkdir -p runtimes/linux-x64/native 
             mkdir -p prebuilds/linux-x64/
+
             cp /tmp/gpt4all-backend/runtimes/linux-x64/*-*.so runtimes/linux-x64/native/ 
             cp /tmp/gpt4all-backend/prebuilds/linux-x64/*.node prebuilds/linux-x64/    
 
+            # arm64 binaries
+            mkdir -p runtimes/linux-arm64/native
+            mkdir -p prebuilds/linux-arm64/
+
+            cp /tmp/gpt4all-backend/runtimes/linux-arm64/*-*.so runtimes/linux-arm64/native/ 
+            cp /tmp/gpt4all-backend/prebuilds/linux-arm64/*.node prebuilds/linux-arm64/    
+
+            
             # darwin has univeral runtime libraries
+            # PREPARE DARWIN BINARIES
             mkdir -p runtimes/darwin/native
-            mkdir -p prebuilds/darwin-x64/
+            mkdir -p prebuilds/darwin-arm64/
 
             cp /tmp/gpt4all-backend/runtimes/darwin/*-*.* runtimes/darwin/native/
 
-            cp /tmp/gpt4all-backend/prebuilds/darwin-x64/*.node prebuilds/darwin-x64/    
+            cp /tmp/gpt4all-backend/prebuilds/darwin-arm64/*.node prebuilds/darwin-xarm64/    
 
             # copy the backend source we depend on to make fallback builds work
             mkdir backend
