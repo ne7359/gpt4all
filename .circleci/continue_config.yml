@@ -1143,7 +1143,7 @@ jobs:
       - persist_to_workspace:
           root: gpt4all-backend
           paths:
-            - runtimes/win-x64_msvc/*.dll
+            - runtimes/win-x64/*.dll
 
   build-nodejs-linux: 
     machine: 
