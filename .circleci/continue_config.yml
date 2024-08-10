@@ -1163,7 +1163,7 @@ jobs:
       - persist_to_workspace:
           root: gpt4all-backend
           paths:
-            - runtimes/bin/Release/win-x64/*.dll
+            - runtimes/bin/*.dll
 
   build-nodejs-linux: 
     machine: 
@@ -1194,10 +1194,13 @@ jobs:
           command: |
             mkdir -p gpt4all-backend/prebuilds/linux-x64
             mkdir -p gpt4all-backend/runtimes/linux-x64
+
             cp /tmp/gpt4all-backend/runtimes/linux-x64/*-*.so gpt4all-backend/runtimes/linux-x64
             cp gpt4all-bindings/typescript/prebuilds/linux-x64/*.node gpt4all-backend/prebuilds/linux-x64
+
             mkdir -p gpt4all-backend/prebuilds/linux-arm64
             mkdir -p gpt4all-backend/runtimes/linux-arm64
+
             cp /tmp/gpt4all-backend/runtimes/linux-arm64/*-*.so gpt4all-backend/runtimes/linux-arm64
             cp gpt4all-bindings/typescript/prebuilds/linux-arm64/*.node gpt4all-backend/prebuilds/linux-arm64
       - persist_to_workspace:
@@ -1207,6 +1210,7 @@ jobs:
             - runtimes/linux-x64/*-*.so
             - prebuilds/linux-arm64/*.node
             - runtimes/linux-arm64/*-*.so
+
   build-nodejs-macos: 
     macos:
       xcode: "14.0.0"
@@ -1227,11 +1231,13 @@ jobs:
           command: | 
             cd gpt4all-bindings/typescript
             yarn prebuildify -t 18.16.0 --napi
+
       - run: 
           name: "Persisting all necessary things to workspace"
           command: |  
             mkdir -p gpt4all-backend/prebuilds/darwin-x64
             mkdir -p gpt4all-backend/runtimes/darwin
+
             cp /tmp/gpt4all-backend/runtimes/osx-x64/*-*.* gpt4all-backend/runtimes/darwin
             cp gpt4all-bindings/typescript/prebuilds/darwin-x64/*.node gpt4all-backend/prebuilds/darwin-x64
       - persist_to_workspace:
@@ -1272,9 +1278,14 @@ jobs:
             yarn prebuildify -t 18.16.0 --napi 
       - run: 
           command: |
+
             mkdir -p gpt4all-backend/prebuilds/win32-x64
             mkdir -p gpt4all-backend/runtimes/win32-x64
-            cp /tmp/gpt4all-backend/runtimes/win-x64_msvc/*-*.dll gpt4all-backend/runtimes/win32-x64
+            
+            # copy llama runtimes from previous build step to new directory
+            cp /tmp/gpt4all-backend/runtimes/*-*.dll gpt4all-backend/runtimes/win32-x64
+
+            # copy nodejs native addon to new directory
             cp gpt4all-bindings/typescript/prebuilds/win32-x64/*.node gpt4all-backend/prebuilds/win32-x64
         
       - persist_to_workspace:
