@@ -1149,11 +1149,11 @@ jobs:
             mkdir runtimes/
             # windows cp -R
             robocopy build/ runtimes/ /s /e
-            ls runtimes
+            ls runtimes/bin
       - persist_to_workspace:
           root: gpt4all-backend
           paths:
-            - runtimes/win-x64/*.dll
+            - runtimes/bin/Release/win-x64/*.dll
 
   build-nodejs-linux: 
     machine: 
