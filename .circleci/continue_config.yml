@@ -1112,7 +1112,6 @@ jobs:
           name: Install CUDA Toolkit
           command: |
             $Folder = 'C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8'
-            ls $Folder
             if(Test-Path -Path $Folder) {
               Invoke-WebRequest -Uri https://developer.download.nvidia.com/compute/cuda/11.8.0/network_installers/cuda_11.8.0_windows_network.exe -OutFile cuda_11.8.0_windows_network.exe
               .\cuda_11.8.0_windows_network.exe -s cudart_11.8 nvcc_11.8 cublas_11.8 cublas_dev_11.8
@@ -1265,13 +1264,10 @@ jobs:
       - attach_workspace:
           at: /tmp/gpt4all-backend
       - run: choco install wget -y
-      - run:
-         command: wget https://nodejs.org/dist/v18.16.0/node-v18.16.0-x86.msi -P C:\Users\circleci\Downloads\
-         shell: cmd.exe
-      - run: MsiExec.exe /i C:\Users\circleci\Downloads\node-v18.16.0-x86.msi /qn
       - run: 
           command: |
               Start-Process powershell -verb runAs -Args "-start GeneralProfile"
+              python3 -m pip install setuptools
               nvm install 18.16.0
               nvm use 18.16.0
       - run: node --version 
