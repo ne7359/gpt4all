@@ -1234,11 +1234,13 @@ jobs:
 
       - run: 
           name: "Persisting all necessary things to workspace"
-          command: |  
+          command: |
             mkdir -p gpt4all-backend/prebuilds/darwin-x64
             mkdir -p gpt4all-backend/runtimes/darwin
 
             cp /tmp/gpt4all-backend/runtimes/osx-x64/*-*.* gpt4all-backend/runtimes/darwin
+            ls gpt4all-backend/typescript/
+            ls gpt4all-backend/typescript/prebuilds/
             cp gpt4all-bindings/typescript/prebuilds/darwin-x64/*.node gpt4all-backend/prebuilds/darwin-x64
       - persist_to_workspace:
           root: gpt4all-backend
