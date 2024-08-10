@@ -1137,9 +1137,19 @@ jobs:
 
             $Env:PATH += ";C:\VulkanSDK\1.3.261.1\bin"
             $Env:VULKAN_SDK = "C:\VulkanSDK\1.3.261.1"
+
             cd gpt4all-backend
+
+            # create cmake build dir in gpt4all-backend.
             cmake -G Ninja -B build -DCMAKE_BUILD_TYPE=Release -DKOMPUTE_OPT_DISABLE_VULKAN_VERSION_CHECK=ON
+            # We build our binaries to this directory.
             cmake --build build --parallel
+
+            # create runtimes directory, which will be stored for the next workflow down the line.
+            mkdir runtimes/
+            # windows cp -R
+            robocopy build/ runtimes/ /s /e
+            ls runtimes
       - persist_to_workspace:
           root: gpt4all-backend
           paths:
