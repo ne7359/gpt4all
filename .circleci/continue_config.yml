@@ -1355,7 +1355,7 @@ jobs:
 
             cp /tmp/gpt4all-backend/runtimes/darwin/*-*.* runtimes/darwin/native/
 
-            cp /tmp/gpt4all-backend/prebuilds/darwin-arm64/*.node prebuilds/darwin-xarm64/    
+            cp /tmp/gpt4all-backend/prebuilds/darwin-arm64/*.node prebuilds/darwin-arm64/    
 
             # copy the backend source we depend on to make fallback builds work
             mkdir backend
