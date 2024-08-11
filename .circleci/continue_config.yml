@@ -1271,7 +1271,7 @@ jobs:
       - run: 
           command: |
               Start-Process powershell -verb runAs -Args "-start GeneralProfile"
-              python3 -m pip install setuptools
+              python -m pip install setuptools
               nvm install 18.16.0
               nvm use 18.16.0
       - run: node --version 
