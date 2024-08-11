@@ -1321,6 +1321,9 @@ jobs:
             # PREPARE WINDOWS BINARIES
             mkdir -p runtimes/win32-x64/native
             mkdir -p prebuilds/win32-x64/
+
+            ls /tmp/gpt4all-backend/runtimes/
+
             cp /tmp/gpt4all-backend/runtimes/win32-x64/*-*.dll runtimes/win32-x64/native/ 
             cp /tmp/gpt4all-backend/prebuilds/win32-x64/*.node prebuilds/win32-x64/    
 
