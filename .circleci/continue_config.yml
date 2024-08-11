@@ -1151,6 +1151,8 @@ jobs:
             $Env:INCLUDE += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\VS\include"
             $Env:INCLUDE += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include"
             $Env:INCLUDE += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include"
+            
+            # allow caching of cuda toolkit on windows
             $Env:CUDAToolkit_ROOT= "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8/bin"
             $Env:CUDACXX= "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8/bin/nvcc"
             
@@ -1166,8 +1168,11 @@ jobs:
 
             # create runtimes directory, which will be stored for the next workflow down the line.
             mkdir -p runtimes/win32-x64
-            # windows cp -R
             robocopy build/bin runtimes/win32-x64/ /s /e
+
+            # wtf robo copy..
+            # https://stackoverflow.com/a/56236247/14709144
+            if ($lastexitcode -lt 8) { exit 0 } else { exit 1 }
       - persist_to_workspace:
           root: gpt4all-backend
           paths:
@@ -1290,7 +1295,7 @@ jobs:
             mkdir -p gpt4all-backend/runtimes/win32-x64
             
             # copy llama runtimes from previous build step to new directory
-            cp /tmp/gpt4all-backend/runtimes/*-*.dll gpt4all-backend/runtimes/win32-x64/
+            cp /tmp/gpt4all-backend/runtimes/win32-x64/*-*.dll gpt4all-backend/runtimes/win32-x64/
 
             # copy nodejs native addon to new directory
             cp gpt4all-bindings/typescript/prebuilds/win32-x64/*.node gpt4all-backend/prebuilds/win32-x64
