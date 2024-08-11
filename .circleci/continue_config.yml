@@ -1357,9 +1357,9 @@ jobs:
 
             cp /tmp/gpt4all-backend/prebuilds/darwin-arm64/*.node prebuilds/darwin-arm64/    
 
-            # copy the backend source we depend on to make fallback builds work
             mkdir backend
             cd ../../gpt4all-backend
+            # copy the backend source we depend on to make fallback builds work
             cp llmodel.h llmodel.cpp llmodel_c.cpp llmodel_c.h sysinfo.h dlhandle.h dlhandle.cpp ../gpt4all-bindings/typescript/backend/
             
       # Test install
