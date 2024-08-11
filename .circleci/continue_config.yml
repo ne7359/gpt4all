@@ -1165,14 +1165,13 @@ jobs:
             cmake --build build --parallel
 
             # create runtimes directory, which will be stored for the next workflow down the line.
-            mkdir runtimes/
+            mkdir -p runtimes/win32-x64
             # windows cp -R
-            robocopy build/ runtimes/ /s /e
-            ls runtimes/bin
+            robocopy build/bin runtimes/win32-x64/ /s /e
       - persist_to_workspace:
           root: gpt4all-backend
           paths:
-            - runtimes/bin/*.dll
+            - runtimes/win32-x64/*.dll
 
   build-nodejs-linux: 
     machine: 
@@ -1291,7 +1290,7 @@ jobs:
             mkdir -p gpt4all-backend/runtimes/win32-x64
             
             # copy llama runtimes from previous build step to new directory
-            cp /tmp/gpt4all-backend/runtimes/*-*.dll gpt4all-backend/runtimes/win32-x64
+            cp /tmp/gpt4all-backend/runtimes/*-*.dll gpt4all-backend/runtimes/win32-x64/
 
             # copy nodejs native addon to new directory
             cp gpt4all-bindings/typescript/prebuilds/win32-x64/*.node gpt4all-backend/prebuilds/win32-x64
@@ -1323,6 +1322,7 @@ jobs:
             mkdir -p prebuilds/win32-x64/
 
             ls /tmp/gpt4all-backend/runtimes/
+            ls /tmp/gpt4all-backend/prebuilds/
 
             cp /tmp/gpt4all-backend/runtimes/win32-x64/*-*.dll runtimes/win32-x64/native/ 
             cp /tmp/gpt4all-backend/prebuilds/win32-x64/*.node prebuilds/win32-x64/    
