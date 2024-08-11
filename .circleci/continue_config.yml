@@ -1360,7 +1360,7 @@ jobs:
             # copy the backend source we depend on to make fallback builds work
             mkdir backend
             cd ../../gpt4all-backend
-            mv llmodel.h llmodel.cpp llmodel_c.cpp llmodel_c.h sysinfo.h dlhandle.h ../gpt4all-bindings/typescript/backend/
+            cp llmodel.h llmodel.cpp llmodel_c.cpp llmodel_c.h sysinfo.h dlhandle.h dlhandle.cpp ../gpt4all-bindings/typescript/backend/
             
       # Test install
       - node/install-packages:
