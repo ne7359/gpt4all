@@ -1114,7 +1114,7 @@ jobs:
             $Folder = 'C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8'
             if(Test-Path -Path $Folder) {
               echo 'Cuda restored from cache'
-              $Env:CUDAToolkit_ROOT=$Folder
+              $Env:CUDAToolkit_ROOT= -join($Folder, "bin")
             } else {
               echo 'Cache not found, reinstalling cuda'
               $NvidiaCudaWebUrl = 'https://developer.download.nvidia.com/compute/cuda/11.8.0/network_installers/cuda_11.8.0_windows_network.exe'
