@@ -94,6 +94,7 @@ jobs:
             cp gpt4all-installer-* upload
       - save_cache:
           key: ccache-gpt4all-macos-{{ epoch }}
+          when: always
           paths:
             - ../.ccache
       # persist the unsigned installer
@@ -371,6 +372,7 @@ jobs:
             cp gpt4all-installer-* upload
       - save_cache:
           key: ccache-gpt4all-linux-amd64-
+          when: always
           paths:
             - ../.ccache
       - store_artifacts:
@@ -529,6 +531,7 @@ jobs:
             copy gpt4all-installer-win64.exe upload
       - save_cache:
           key: ccache-gpt4all-win-amd64-{{ epoch }}
+          when: always
           paths:
             - ..\.ccache
       - store_artifacts:
