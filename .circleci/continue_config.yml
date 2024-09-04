@@ -313,7 +313,7 @@ jobs:
             wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
             sudo dpkg -i cuda-keyring_1.1-1_all.deb
             packages=(
-              bison build-essential cuda-compiler-11-8 flex gperf libcublas-dev-11-8 libfontconfig1 libfreetype6
+              bison build-essential cuda-compiler-11-8 flex g++-12 gperf libcublas-dev-11-8 libfontconfig1 libfreetype6
               libgl1-mesa-dev libmysqlclient21 libnvidia-compute-550-server libodbc2 libpq5 libwayland-dev libx11-6
               libx11-xcb1 libxcb-cursor0 libxcb-glx0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0
               libxcb-render-util0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1 libxcb-xfixes0 libxcb-xinerama0
@@ -353,6 +353,8 @@ jobs:
             ~/Qt/Tools/CMake/bin/cmake \
               -S ../gpt4all-chat -B . \
               -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_C_COMPILER=gcc-12 \
+              -DCMAKE_CXX_COMPILER=g++-12 \
               -DGPT4ALL_OFFLINE_INSTALLER=ON
             ~/Qt/Tools/CMake/bin/cmake --build . -j$(nproc) --target all
             ~/Qt/Tools/CMake/bin/cmake --build . -j$(nproc) --target install
@@ -382,7 +384,7 @@ jobs:
             wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
             sudo dpkg -i cuda-keyring_1.1-1_all.deb
             packages=(
-              bison build-essential cuda-compiler-11-8 flex gperf libcublas-dev-11-8 libfontconfig1 libfreetype6
+              bison build-essential cuda-compiler-11-8 flex g++-12 gperf libcublas-dev-11-8 libfontconfig1 libfreetype6
               libgl1-mesa-dev libmysqlclient21 libnvidia-compute-550-server libodbc2 libpq5 libwayland-dev libx11-6
               libx11-xcb1 libxcb-cursor0 libxcb-glx0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0
               libxcb-render-util0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1 libxcb-xfixes0 libxcb-xinerama0
@@ -422,6 +424,8 @@ jobs:
             ~/Qt/Tools/CMake/bin/cmake \
               -S ../gpt4all-chat -B . \
               -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_C_COMPILER=gcc-12 \
+              -DCMAKE_CXX_COMPILER=g++-12 \
               -DGPT4ALL_OFFLINE_INSTALLER=OFF
             ~/Qt/Tools/CMake/bin/cmake --build . -j$(nproc) --target all
             ~/Qt/Tools/CMake/bin/cmake --build . -j$(nproc) --target install
@@ -689,7 +693,7 @@ jobs:
             wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
             sudo dpkg -i cuda-keyring_1.1-1_all.deb
             packages=(
-              bison build-essential cuda-compiler-11-8 flex gperf libcublas-dev-11-8 libfontconfig1 libfreetype6
+              bison build-essential cuda-compiler-11-8 flex g++-12 gperf libcublas-dev-11-8 libfontconfig1 libfreetype6
               libgl1-mesa-dev libmysqlclient21 libnvidia-compute-550-server libodbc2 libpq5 libwayland-dev libx11-6
               libx11-xcb1 libxcb-cursor0 libxcb-glx0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0
               libxcb-render-util0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-util1 libxcb-xfixes0 libxcb-xinerama0
@@ -717,7 +721,9 @@ jobs:
             export PATH=$PATH:/usr/local/cuda/bin
             ~/Qt/Tools/CMake/bin/cmake \
               -S gpt4all-chat -B build \
-              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_C_COMPILER=gcc-12 \
+              -DCMAKE_CXX_COMPILER=g++-12
             ~/Qt/Tools/CMake/bin/cmake --build build -j$(nproc) --target all
 
   build-gpt4all-chat-windows:
@@ -874,7 +880,7 @@ jobs:
             wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
             sudo dpkg -i cuda-keyring_1.1-1_all.deb
             packages=(
-              build-essential cmake cuda-compiler-11-8 libcublas-dev-11-8 libnvidia-compute-550-server vulkan-sdk
+              build-essential cmake cuda-compiler-11-8 g++-12 libcublas-dev-11-8 libnvidia-compute-550-server vulkan-sdk
             )
             sudo apt update
             sudo apt install -y "${packages[@]}"
@@ -887,6 +893,8 @@ jobs:
             cd gpt4all-backend
             cmake -B build \
               -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_C_COMPILER=gcc-12 \
+              -DCMAKE_CXX_COMPILER=g++-12 \
               -DKOMPUTE_OPT_DISABLE_VULKAN_VERSION_CHECK=ON \
               -DCMAKE_CUDA_ARCHITECTURES='52-virtual;61-virtual;70-virtual;75-virtual'
             cmake --build build -j$(nproc)
@@ -1030,7 +1038,7 @@ jobs:
             wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
             sudo dpkg -i cuda-keyring_1.1-1_all.deb
             packages=(
-              build-essential cmake cuda-compiler-11-8 libcublas-dev-11-8 libnvidia-compute-550-server vulkan-sdk
+              build-essential cmake cuda-compiler-11-8 g++-12 libcublas-dev-11-8 libnvidia-compute-550-server vulkan-sdk
             )
             sudo apt update
             sudo apt install -y "${packages[@]}"
@@ -1042,7 +1050,9 @@ jobs:
             mkdir -p runtimes/build
             cd runtimes/build
             cmake ../.. \
-              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_C_COMPILER=gcc-12 \
+              -DCMAKE_C_COMPILER=g++-12
             cmake --build . -j$(nproc)
             mkdir ../linux-x64
             cp -L *.so ../linux-x64 # otherwise persist_to_workspace seems to mess symlinks
