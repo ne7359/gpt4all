@@ -75,14 +75,14 @@ jobs:
             ~/Qt/Tools/CMake/CMake.app/Contents/bin/cmake \
               -S ../gpt4all-chat -B . -G Ninja \
               -DCMAKE_BUILD_TYPE=Release \
-              -DCMAKE_PREFIX_PATH:PATH=~/Qt/6.5.1/macos/lib/cmake/Qt6 \
+              -DCMAKE_PREFIX_PATH:PATH=~/Qt/6.5.1/macos/lib/cmake \
               -DCMAKE_MAKE_PROGRAM:FILEPATH=~/Qt/Tools/Ninja/ninja \
               -DCMAKE_C_COMPILER_LAUNCHER=ccache \
               -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -DCMAKE_CUDA_COMPILER_LAUNCHER=ccache \
               -DBUILD_UNIVERSAL=ON \
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=12.6 \
-              -DGGML_METAL_MACOSX_VERSION_MIN=12.6 \
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=13.3 \
+              -DGGML_METAL_MACOSX_VERSION_MIN=13.3 \
               -DMACDEPLOYQT=~/Qt/6.5.1/macos/bin/macdeployqt \
               -DGPT4ALL_OFFLINE_INSTALLER=ON \
               -DGPT4ALL_SIGN_INSTALL=ON
@@ -216,11 +216,11 @@ jobs:
             ~/Qt/Tools/CMake/CMake.app/Contents/bin/cmake \
               -S ../gpt4all-chat -B . -G Ninja \
               -DCMAKE_BUILD_TYPE=Release \
-              -DCMAKE_PREFIX_PATH:PATH=~/Qt/6.5.1/macos/lib/cmake/Qt6 \
+              -DCMAKE_PREFIX_PATH:PATH=~/Qt/6.5.1/macos/lib/cmake \
               -DCMAKE_MAKE_PROGRAM:FILEPATH=~/Qt/Tools/Ninja/ninja \
               -DBUILD_UNIVERSAL=ON \
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=12.6 \
-              -DGGML_METAL_MACOSX_VERSION_MIN=12.6 \
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=13.3 \
+              -DGGML_METAL_MACOSX_VERSION_MIN=13.3 \
               -DMACDEPLOYQT=~/Qt/6.5.1/macos/bin/macdeployqt \
               -DGPT4ALL_OFFLINE_INSTALLER=OFF \
               -DGPT4ALL_SIGN_INSTALL=ON
@@ -839,11 +839,11 @@ jobs:
             ~/Qt/Tools/CMake/CMake.app/Contents/bin/cmake \
               -S gpt4all-chat -B build -G Ninja \
               -DCMAKE_BUILD_TYPE=Release \
-              -DCMAKE_PREFIX_PATH:PATH=~/Qt/6.5.1/macos/lib/cmake/Qt6 \
+              -DCMAKE_PREFIX_PATH:PATH=~/Qt/6.5.1/macos/lib/cmake \
               -DCMAKE_MAKE_PROGRAM:FILEPATH=~/Qt/Tools/Ninja/ninja \
               -DBUILD_UNIVERSAL=ON \
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=12.6 \
-              -DGGML_METAL_MACOSX_VERSION_MIN=12.6
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=13.3 \
+              -DGGML_METAL_MACOSX_VERSION_MIN=13.3
             ~/Qt/Tools/CMake/CMake.app/Contents/bin/cmake --build build --target all
   build-ts-docs: 
     docker: 
@@ -954,8 +954,8 @@ jobs:
             cmake -B build \
               -DCMAKE_BUILD_TYPE=Release \
               -DBUILD_UNIVERSAL=ON \
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=12.6 \
-              -DGGML_METAL_MACOSX_VERSION_MIN=12.6
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=13.3 \
+              -DGGML_METAL_MACOSX_VERSION_MIN=13.3
             cmake --build build --parallel
       - run:
           name: Build wheel
@@ -1109,8 +1109,8 @@ jobs:
             cmake ../.. \
               -DCMAKE_BUILD_TYPE=Release \
               -DBUILD_UNIVERSAL=ON \
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=12.6 \
-              -DGGML_METAL_MACOSX_VERSION_MIN=12.6
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=13.3 \
+              -DGGML_METAL_MACOSX_VERSION_MIN=13.3
             cmake --build . --parallel
             mkdir ../osx-x64
             cp -L *.dylib ../osx-x64

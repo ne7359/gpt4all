@@ -6,8 +6,7 @@ Component.prototype.beginInstallation = function() {
     targetDirectory = installer.value("TargetDir");
 };
 
-Component.prototype.createOperations = function()
-{
+Component.prototype.createOperations = function() {
     try {
         // call the base create operations function
         component.createOperations();
