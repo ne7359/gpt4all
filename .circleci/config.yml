@@ -8,7 +8,7 @@ workflows:
   generate-config:
     jobs:
       - path-filtering/filter:
-          base-revision: main
+          base-revision: fix-ci-nojobs-error
           config-path: .circleci/continue_config.yml
           mapping: |
             .circleci/.* run-all-workflows true
