@@ -72,7 +72,7 @@ configure_file(
   "${CMAKE_CURRENT_BINARY_DIR}/config.h"
 )
 
-find_package(Qt6 6.4 COMPONENTS Core HttpServer LinguistTools Pdf Quick QuickDialogs2 Sql Svg REQUIRED)
+find_package(Qt6 6.4 COMPONENTS Core HttpServer LinguistTools Pdf Quick QuickDialogs2 Sql Svg Widgets REQUIRED)
 
 # Get the Qt6Core target properties
 get_target_property(Qt6Core_INCLUDE_DIRS Qt6::Core INTERFACE_INCLUDE_DIRECTORIES)
