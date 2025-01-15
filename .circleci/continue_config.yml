@@ -1780,7 +1780,6 @@ workflows:
         - << pipeline.parameters.run-chat-workflow >>
     jobs:
       - hold:
-          <<: *main_only
           type: approval
       - build-online-chat-installer-macos:
           <<: *main_only
@@ -1803,11 +1802,9 @@ workflows:
           requires:
             - build-online-chat-installer-windows
       - build-online-chat-installer-windows-arm:
-          <<: *main_only
           requires:
             - hold
       - sign-online-chat-installer-windows-arm:
-          <<: *main_only
           requires:
             - build-online-chat-installer-windows-arm
       - build-online-chat-installer-linux:
